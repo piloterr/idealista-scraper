@@ -72,7 +72,7 @@ response = requests.get(
     params={
         "query": "https://www.idealista.com/fr/inmueble/111463799/",
     },
-    timeout=60,
+    timeout=120,
 )
 response.raise_for_status()
 data = response.json()
@@ -255,7 +255,7 @@ response = requests.get(
     params={
 
     },
-    timeout=60,
+    timeout=120,
 )
 response.raise_for_status()
 data = response.json()
@@ -356,7 +356,7 @@ response = requests.get(
     params={
         "query": "https://www.idealista.com/venta-viviendas/barcelona/ciutat-vella/la-barceloneta/",
     },
-    timeout=60,
+    timeout=120,
 )
 response.raise_for_status()
 data = response.json()
