@@ -9,6 +9,7 @@
 The **Piloterr Idealista Scraper API** lets you extract public data from Idealista as **clean, structured JSON** — no proxies, headless browsers or HTML parsing to maintain. Endpoints available in production:
 
 - **Idealista Property API** — Extract full property details from an Idealista listing URL, including price, specs, photos by room, features, energy rating, and advertiser data.
+- **Idealista Provinces API** — List the 50 Spanish provinces Idealista shows for homes for sale.
 - **Idealista Search API** — Search Idealista listings from a search URL and retrieve prices, specs, photos, agency info, and pagination.
 
 Use it for property price monitoring, market analytics, investment sourcing or rental yield models.
@@ -16,12 +17,14 @@ Use it for property price monitoring, market analytics, investment sourcing or r
 | Endpoint | Path | Credits | What you get |
 |---|---|---|---|
 | [Idealista Property API](#idealista-property-api) | `/v2/idealista/property` | 3 | Extract full property details from an Idealista listing URL, including price, specs, photos by room, features, energy rating, and advertiser data. |
-| [Idealista Search API](#idealista-search-api) | `/v2/idealista/search` | 3 | Search Idealista listings from a search URL and retrieve prices, specs, photos, agency info, and pagination. |
+| [Idealista Provinces API](#idealista-provinces-api) | `/v2/idealista/provinces` | 3 | List the 50 Spanish provinces Idealista shows for homes for sale. Each row includes the sale search URL to pass as query to Idealista Search. Madrid is madrid-provincia. |
+| [Idealista Search API](#idealista-search-api) | `/v2/idealista/search` | 3 | Search Idealista listings from a search URL and retrieve prices, specs, photos, agency info, and pagination. Pass a province URL from `/v2/idealista/provinces` (`results[].url`) as `query`. Madrid is `https |
 
 ## Table of contents
 
 - [How it works](#how-it-works)
 - [Idealista Property API](#idealista-property-api)
+- [Idealista Provinces API](#idealista-provinces-api)
 - [Idealista Search API](#idealista-search-api)
 - [Code examples in other languages](#code-examples-in-other-languages)
 - [Practical use cases](#practical-use-cases)
@@ -228,9 +231,109 @@ Example response from the API reference, abridged — real values depend on the 
 | `advertiser_url` | string |  |
 | `advertiser_name` | string |  |
 
+## Idealista Provinces API
+
+List the 50 Spanish provinces Idealista shows for homes for sale. Each row includes the sale search URL to pass as query to Idealista Search. Madrid is madrid-provincia.
+
+`GET | POST https://api.piloterr.com/v2/idealista/provinces` · **3 credits per request** · [Full reference](https://app.piloterr.com/openapi)
+
+### Request parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+
+### Python example
+
+```python
+import json
+import os
+import requests
+
+response = requests.get(
+    "https://api.piloterr.com/v2/idealista/provinces",
+    headers={"x-api-key": os.environ["PILOTERR_API_KEY"]},
+    params={
+
+    },
+    timeout=60,
+)
+response.raise_for_status()
+data = response.json()
+
+print(json.dumps(data, indent=2, ensure_ascii=False)[:2000])
+```
+
+### TypeScript example
+
+```typescript
+type IdealistaProvinces = {
+  results?: {
+    url?: string;
+    name?: string;
+    slug?: string;
+    region?: string;
+    listing_count?: number;
+  }[];
+};
+
+const params = new URLSearchParams({
+
+});
+
+const response = await fetch(`https://api.piloterr.com/v2/idealista/provinces?${params}`, {
+  headers: { "x-api-key": process.env.PILOTERR_API_KEY! },
+});
+if (!response.ok) throw new Error(`Piloterr error ${response.status}: ${await response.text()}`);
+
+const data = (await response.json()) as IdealistaProvinces;
+
+console.log(JSON.stringify(data, null, 2).slice(0, 2000));
+```
+
+<details>
+<summary><b>POST variant</b></summary>
+
+```http
+POST https://api.piloterr.com/v2/idealista/provinces
+x-api-key: YOUR_API_KEY
+Content-Type: application/json
+
+{}
+```
+</details>
+
+### Output example
+
+Example response from the API reference, abridged — real values depend on the page you scrape.
+
+```json
+{
+  "results": [
+    {
+      "url": "https://www.idealista.com/venta-viviendas/madrid-provincia/",
+      "name": "Madrid",
+      "slug": "madrid-provincia",
+      "region": "Comunidad de Madrid",
+      "listing_count": 34094
+    }
+  ]
+}
+```
+
+### Response fields
+
+| Field | Type | Description |
+|---|---|---|
+| `results[]` | object[] |  |
+| `results[].url` | string |  |
+| `results[].name` | string |  |
+| `results[].slug` | string |  |
+| `results[].region` | string |  |
+| `results[].listing_count` | integer |  |
+
 ## Idealista Search API
 
-Search Idealista listings from a search URL and retrieve prices, specs, photos, agency info, and pagination.
+Search Idealista listings from a search URL and retrieve prices, specs, photos, agency info, and pagination. Pass a province URL from `/v2/idealista/provinces` (`results[].url`) as `query`. Madrid is `https://www.idealista.com/venta-viviendas/madrid-provincia/`.
 
 `GET | POST https://api.piloterr.com/v2/idealista/search` · **3 credits per request** · [Full reference](https://app.piloterr.com/openapi)
 
@@ -389,15 +492,15 @@ Example response from the API reference, abridged — real values depend on the 
 
 Ready-to-run examples live in the [`examples/`](examples) folder. Each one reads your key from the `PILOTERR_API_KEY` environment variable.
 
-| Language | Property | Search |
-|---|---|---|
-| cURL (Bash) | [`property`](examples/curl/property.sh) | [`search`](examples/curl/search.sh) |
-| PHP | [`property`](examples/php/property.php) | [`search`](examples/php/search.php) |
-| C# | [`property`](examples/csharp/Property.cs) | [`search`](examples/csharp/Search.cs) |
-| Go | [`property`](examples/go/property.go) | [`search`](examples/go/search.go) |
-| Java | [`property`](examples/java/PropertyExample.java) | [`search`](examples/java/SearchExample.java) |
-| Ruby | [`property`](examples/ruby/property.rb) | [`search`](examples/ruby/search.rb) |
-| Node.js | [`property`](examples/nodejs/property.mjs) | [`search`](examples/nodejs/search.mjs) |
+| Language | Property | Provinces | Search |
+|---|---|---|---|
+| cURL (Bash) | [`property`](examples/curl/property.sh) | [`provinces`](examples/curl/provinces.sh) | [`search`](examples/curl/search.sh) |
+| PHP | [`property`](examples/php/property.php) | [`provinces`](examples/php/provinces.php) | [`search`](examples/php/search.php) |
+| C# | [`property`](examples/csharp/Property.cs) | [`provinces`](examples/csharp/Provinces.cs) | [`search`](examples/csharp/Search.cs) |
+| Go | [`property`](examples/go/property.go) | [`provinces`](examples/go/provinces.go) | [`search`](examples/go/search.go) |
+| Java | [`property`](examples/java/PropertyExample.java) | [`provinces`](examples/java/ProvincesExample.java) | [`search`](examples/java/SearchExample.java) |
+| Ruby | [`property`](examples/ruby/property.rb) | [`provinces`](examples/ruby/provinces.rb) | [`search`](examples/ruby/search.rb) |
+| Node.js | [`property`](examples/nodejs/property.mjs) | [`provinces`](examples/nodejs/provinces.mjs) | [`search`](examples/nodejs/search.mjs) |
 
 ## Practical use cases
 
@@ -427,11 +530,11 @@ No. Piloterr handles rendering, proxy rotation and retries on its side. You only
 
 ### How much does a request cost?
 
-Credits per call: `/v2/idealista/property` **3**, `/v2/idealista/search` **3**. See the [Piloterr website](https://www.piloterr.com) for plans.
+Credits per call: `/v2/idealista/property` **3**, `/v2/idealista/provinces` **3**, `/v2/idealista/search` **3**. See the [Piloterr website](https://www.piloterr.com) for plans.
 
 ### What data does the Idealista API return?
 
-Each endpoint returns structured JSON: **Idealista Property** — `url`, `plans`, `price`, `title`, `units`, `images`; **Idealista Search** — `results[]`, `results[].link`, `results[].price`, `results[].title`, `results[].details`, `results[].picture`.
+Each endpoint returns structured JSON: **Idealista Property** — `url`, `plans`, `price`, `title`, `units`, `images`; **Idealista Provinces** — `results[]`, `results[].url`, `results[].name`, `results[].slug`, `results[].region`, `results[].listing_count`; **Idealista Search** — `results[]`, `results[].link`, `results[].price`, `results[].title`, `results[].details`, `results[].picture`.
 
 ### Which languages are supported?
 
